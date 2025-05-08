@@ -1,0 +1,87 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "host.exp.exponent",
+    "module": "expo.modules.sqlite",
+    "version": "15.2.9",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "8.13"
+    }
+  },
+  "variants": [
+    {
+      "name": "releaseVariantReleaseApiPublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "expo.modules.sqlite-15.2.9.aar",
+          "url": "expo.modules.sqlite-15.2.9.aar",
+          "size": 3758065,
+          "sha512": "8b69c4dedb9b42387d048fcd82193ba8ed8a781c6e0f753b1ed583ea9e156fd9f9e38b958f2f7be1e2863fa645e9f90d25df397b2193ecd652d1ad91be6fada3",
+          "sha256": "4e9a44e83255ec89d5d0c20e51cd4de4d25320193b3a760d80cb18d4b3326c6d",
+          "sha1": "23d9963f50292ea63e66fe589ba25c2ddac95a98",
+          "md5": "62e78f00f21d291af0ad51c4086f0504"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseRuntimePublication",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk7",
+          "version": {
+            "requires": "2.0.21"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "expo.modules.sqlite-15.2.9.aar",
+          "url": "expo.modules.sqlite-15.2.9.aar",
+          "size": 3758065,
+          "sha512": "8b69c4dedb9b42387d048fcd82193ba8ed8a781c6e0f753b1ed583ea9e156fd9f9e38b958f2f7be1e2863fa645e9f90d25df397b2193ecd652d1ad91be6fada3",
+          "sha256": "4e9a44e83255ec89d5d0c20e51cd4de4d25320193b3a760d80cb18d4b3326c6d",
+          "sha1": "23d9963f50292ea63e66fe589ba25c2ddac95a98",
+          "md5": "62e78f00f21d291af0ad51c4086f0504"
+        }
+      ]
+    },
+    {
+      "name": "releaseVariantReleaseSourcePublication",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "expo.modules.sqlite-15.2.9-sources.jar",
+          "url": "expo.modules.sqlite-15.2.9-sources.jar",
+          "size": 11071,
+          "sha512": "4917cf35bb225309902a2482186f53d3cdde720c66d66ecf0dfa7aa42684a6ac4af424f8ea0e2bc7f7095b6301c1560ccb1fe9b224d8179e86e73e2c0a4c96c1",
+          "sha256": "df4580eb041e8620081acf960e64263a63771e856a40cc5ee17fa654fe3672da",
+          "sha1": "1e52a7388cd71d0ad044ecd2658b8f7a89496240",
+          "md5": "bb2978541a06d96c8c2180a09fe4aedc"
+        }
+      ]
+    }
+  ]
+}
