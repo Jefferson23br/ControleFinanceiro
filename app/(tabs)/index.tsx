@@ -1,40 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import ThemedText from '@/components/ThemedText';
-import { getContas } from '@/services/database';
-import { Conta } from '@/types';
 import { useColorScheme } from '../../hooks/useColorScheme';
 import Colors from '../../constants/Colors';
+import ParallaxScrollView from '@/components/ParallaxScrollView';
+import ThemedText from '@/components/ThemedText';
+import ThemedView from '@/components/ThemedView';
 
-export default function Home() {
-  const [contas, setContas] = useState<Conta[]>([]);
+export default function HomeScreen() {
   const colorScheme = useColorScheme();
 
-  useEffect(() => {
-    const fetchContas = async () => {
-      const contasData = await getContas();
-      setContas(contasData);
-    };
-    fetchContas();
-  }, []);
-
   return (
-    <View style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'dark'].background }]}>
-      <ThemedText type="title" style={{ color: Colors[colorScheme ?? 'dark'].text }}>
-        Controle Financeiro
-      </ThemedText>
-      {contas.map((conta) => (
-        <ThemedText key={conta.id} style={{ color: Colors[colorScheme ?? 'dark'].text }}>
-          {conta.nome}: R${conta.saldo_inicial.toFixed(2)}
-        </ThemedText>
-      ))}
-    </View>
+    <ParallaxScrollView>
+      <ThemedView style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'dark'].background }]}>
+        <ThemedText type="title">Bem-vindo!</ThemedText>
+      </ThemedView>
+    </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

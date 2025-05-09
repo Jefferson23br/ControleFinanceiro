@@ -1,20 +1,19 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import LancamentoForm from '@/components/LancamentoForm';
-import ThemedText from '@/components/ThemedText';
 import { useColorScheme } from '../../hooks/useColorScheme';
 import Colors from '../../constants/Colors';
+import LancamentoForm from '@/components/LancamentoForm';
+import ThemedText from '@/components/ThemedText';
+import ThemedView from '@/components/ThemedView';
 
-export default function Receita() {
+export default function ReceitaScreen() {
   const colorScheme = useColorScheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'dark'].background }]}>
-      <ThemedText type="title" style={{ color: Colors[colorScheme ?? 'dark'].text }}>
-        Nova Receita
-      </ThemedText>
+    <ThemedView style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'dark'].background }]}>
+      <ThemedText type="title">Nova Receita</ThemedText>
       <LancamentoForm tipo="receita" />
-    </View>
+    </ThemedView>
   );
 }
 
