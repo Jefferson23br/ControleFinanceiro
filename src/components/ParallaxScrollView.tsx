@@ -1,7 +1,8 @@
 import React, { ReactNode } from 'react';
 import { View, ScrollView, StyleSheet, Dimensions, Platform } from 'react-native';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import TabBarBackground from '@/components/ui/TabBarBackground';
+import { useColorScheme } from '../hooks/useColorScheme';
+import TabBarBackground from './ui/TabBarBackground';
+import Colors from '../../constants/Colors';
 
 interface ParallaxScrollViewProps {
   children: ReactNode;
@@ -9,11 +10,8 @@ interface ParallaxScrollViewProps {
 }
 
 export default function ParallaxScrollView({ children, headerImage }: ParallaxScrollViewProps) {
-  const theme = useColorScheme();
-  const backgroundColor = {
-    light: '#FFF',
-    dark: '#333',
-  }[theme];
+  const colorScheme = useColorScheme();
+  const backgroundColor = Colors[colorScheme ?? 'dark'].background; // #1C2526
 
   return (
     <View style={[styles.container, { backgroundColor }]}>

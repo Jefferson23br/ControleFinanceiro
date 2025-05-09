@@ -3,11 +3,14 @@ import { View, TextInput, Button, StyleSheet } from 'react-native';
 import ThemedText from '@/components/ThemedText';
 import { insertConta } from '@/services/database';
 import { Conta } from '@/types';
+import { useColorScheme } from '../../hooks/useColorScheme';
+import Colors from '../../constants/Colors';
 
 export default function Configuracoes() {
   const [nome, setNome] = useState('');
   const [saldoInicial, setSaldoInicial] = useState('');
   const [tipo, setTipo] = useState('Corrente');
+  const colorScheme = useColorScheme();
 
   const handleAddConta = async () => {
     if (!nome || !saldoInicial) {
@@ -26,24 +29,41 @@ export default function Configuracoes() {
   };
 
   return (
-    <View style={styles.container}>
-      <ThemedText type="title">Configurações</ThemedText>
+    <View style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'dark'].background }]}>
+      <ThemedText type="title" style={{ color: Colors[colorScheme ?? 'dark'].text }}>
+        Configurações
+      </ThemedText>
       <TextInput
-        style={styles.input}
+        style={[styles.input, {
+          backgroundColor: '#2A3435',
+          color: Colors[colorScheme ?? 'dark'].text,
+          borderColor: Colors[colorScheme ?? 'dark'].icon,
+        }]}
         placeholder="Nome da Conta"
+        placeholderTextColor="#A0A0A0"
         value={nome}
         onChangeText={setNome}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, {
+          backgroundColor: '#2A3435',
+          color: Colors[colorScheme ?? 'dark'].text,
+          borderColor: Colors[colorScheme ?? 'dark'].icon,
+        }]}
         placeholder="Saldo Inicial"
+        placeholderTextColor="#A0A0A0"
         value={saldoInicial}
         onChangeText={setSaldoInicial}
         keyboardType="numeric"
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, {
+          backgroundColor: '#2A3435',
+          color: Colors[colorScheme ?? 'dark'].text,
+          borderColor: Colors[colorScheme ?? 'dark'].icon,
+        }]}
         placeholder="Tipo (Corrente/Poupança)"
+        placeholderTextColor="#A0A0A0"
         value={tipo}
         onChangeText={setTipo}
       />
@@ -59,7 +79,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
     padding: 8,
     marginBottom: 16,
     borderRadius: 4,
