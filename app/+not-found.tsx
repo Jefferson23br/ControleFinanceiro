@@ -1,36 +1,26 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ThemedText from '@/components/ThemedText';
+import ThemedView from '@/components/ThemedView';
 
-export default function NotFound() {
+export default function NotFoundScreen() {
   return (
-    <View style={styles.container}>
-      <ThemedText type="title">Página Não Encontrada</ThemedText>
-      <ThemedText type="subtitle">Desculpe, a página que você está procurando não existe.</ThemedText>
-      <Link href="/" style={styles.link}>
-        <ThemedText style={styles.linkText}>Voltar para Home</ThemedText>
-      </Link>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title">Página não encontrada!</ThemedText>
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFF',
-  },
-  link: {
-    marginTop: 16,
-    padding: 8,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-  },
-  linkText: {
-    color: '#FFF',
-    fontSize: 16,
+    justifyContent: 'center',
   },
 });

@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
-import { useColorScheme } from '../../hooks/useColorScheme';
 import Colors from '../../constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -10,7 +10,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
         tabBarStyle: {
-          backgroundColor: Colors[colorScheme ?? 'dark'].background, // #1C2526
+          backgroundColor: Colors[colorScheme ?? 'dark'].background,
         },
         headerShown: false,
       }}

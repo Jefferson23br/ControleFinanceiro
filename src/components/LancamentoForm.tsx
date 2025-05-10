@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import ThemedText from '@/components/ThemedText';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import Colors from '../../constants/Colors';
 import { getContas, getCategorias, saveLancamento, updateContaSaldo } from '@/services/database';
-import { Conta, Categoria } from '@/types';
+import { Conta, Categoria } from '../types';
 
 interface LancamentoFormProps {
   tipo: 'receita' | 'despesa';
 }
 
 export default function LancamentoForm({ tipo }: LancamentoFormProps) {
+  const colorScheme = useColorScheme();
   const [contas, setContas] = useState<Conta[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [contaId, setContaId] = useState<number | null>(null);
@@ -48,12 +51,12 @@ export default function LancamentoForm({ tipo }: LancamentoFormProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'dark'].background }]}>
       <ThemedText type="subtitle">Novo {tipo === 'receita' ? 'Receita' : 'Despesa'}</ThemedText>
       <Picker
         selectedValue={contaId}
         onValueChange={(itemValue) => setContaId(itemValue)}
-        style={styles.picker}
+        style={[styles.picker, { backgroundColor: '#1E1E1E', color: Colors[colorScheme ?? 'dark'].text }]}
       >
         <Picker.Item label="Selecione uma conta" value={null} />
         {contas.map((conta) => (
@@ -63,7 +66,7 @@ export default function LancamentoForm({ tipo }: LancamentoFormProps) {
       <Picker
         selectedValue={categoriaId}
         onValueChange={(itemValue) => setCategoriaId(itemValue)}
-        style={styles.picker}
+        style={[styles.picker, { backgroundColor: '#1E1E1E', color: Colors[colorScheme ?? 'dark'].text }]}
       >
         <Picker.Item label="Selecione uma categoria" value={null} />
         {categorias.map((cat: Categoria) => (
@@ -71,39 +74,45 @@ export default function LancamentoForm({ tipo }: LancamentoFormProps) {
         ))}
       </Picker>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: '#1E1E1E' }]}
         placeholder="Valor"
+        placeholderTextColor="#A0A0A0"
         value={valor}
         onChangeText={setValor}
         keyboardType="numeric"
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: '#1E1E1E' }]}
         placeholder="Data (YYYY-MM-DD)"
+        placeholderTextColor="#A0A0A0"
         value={data}
         onChangeText={setData}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: '#1E1E1E' }]}
         placeholder="Descrição"
+        placeholderTextColor="#A0A0A0"
         value={descricao}
         onChangeText={setDescricao}
       />
-      <Button title="Salvar" onPress={handleSubmit} />
+      <Button title="Salvar" onPress={handleSubmit} color={Colors[colorScheme ?? 'dark'].tint} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 16,
+    alignItems: 'center',
   },
   picker: {
+    width: '100%',
     marginBottom: 16,
+    borderRadius: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
+    width: '100%',
     padding: 8,
     marginBottom: 16,
     borderRadius: 4,

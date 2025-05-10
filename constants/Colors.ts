@@ -8,12 +8,12 @@ const Colors = {
     tabIconSelected: '#2F95DC',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#1C2526', // Preto fosco
-    tint: '#2F95DC',
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: '#2F95DC',
+    text: '#E0E0E0',
+    background: '#121212',
+    tint: '#4CAF50',
+    icon: '#B0B0B0',
+    tabIconDefault: '#B0B0B0',
+    tabIconSelected: '#4CAF50',
   },
 };
 

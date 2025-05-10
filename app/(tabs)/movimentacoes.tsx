@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet } from 'react-native';
+import { View, TextInput, FlatList, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
-import { useColorScheme } from '../../hooks/useColorScheme';
-import Colors from '../../constants/Colors';
+import ThemedText from '@/components/ThemedText';
+import ThemedView from '@/components/ThemedView';
 import { getLancamentos, getContas, getCategorias, getSaldoConta } from '@/services/database';
-import { Lancamento, Conta, Categoria } from '@/types';
+import { Lancamento, Conta, Categoria } from '../../src/types';
 
 export default function Movimentacoes() {
-  const colorScheme = useColorScheme();
-  console.log('ColorScheme:', colorScheme, 'Background:', Colors[colorScheme ?? 'dark'].background);
-
   const [filtroTexto, setFiltroTexto] = useState('');
   const [filtroContaId, setFiltroContaId] = useState<number | null>(null);
   const [filtroCategoriaId, setFiltroCategoriaId] = useState<number | null>(null);
@@ -65,95 +63,110 @@ export default function Movimentacoes() {
   });
 
   return (
-    <View style={[styles.container, { backgroundColor: Colors[colorScheme ?? 'dark'].background }]}>
-      <Text style={[styles.title, { color: Colors[colorScheme ?? 'dark'].text }]}>
-        Movimentações
-      </Text>
-      <TextInput
-        style={[styles.input, {
-          backgroundColor: '#2A3435',
-          color: Colors[colorScheme ?? 'dark'].text,
-        }]}
-        placeholder="Filtrar por descrição..."
-        placeholderTextColor="#A0A0A0"
-        value={filtroTexto}
-        onChangeText={setFiltroTexto}
-      />
-      <Picker
-        selectedValue={filtroContaId}
-        onValueChange={(itemValue) => setFiltroContaId(itemValue)}
-        style={[styles.picker, { backgroundColor: '#2A3435', color: Colors[colorScheme ?? 'dark'].text }]}
-      >
-        <Picker.Item label="Todas as contas" value={null} />
-        {contas.map((conta) => (
-          <Picker.Item key={conta.id} label={conta.nome} value={conta.id} />
-        ))}
-      </Picker>
-      {filtroContaId && saldoConta !== null && (
-        <Text style={[styles.saldo, { color: Colors[colorScheme ?? 'dark'].text }]}>
-          Saldo da conta: R${saldoConta.toFixed(2)}
-        </Text>
-      )}
-      <Picker
-        selectedValue={filtroCategoriaId}
-        onValueChange={(itemValue) => setFiltroCategoriaId(itemValue)}
-        style={[styles.picker, { backgroundColor: '#2A3435', color: Colors[colorScheme ?? 'dark'].text }]}
-      >
-        <Picker.Item label="Todas as categorias" value={null} />
-        {categorias.map((cat) => (
-          <Picker.Item key={cat.id} label={cat.nome} value={cat.id} />
-        ))}
-      </Picker>
-      <FlatList
-        data={filteredLancamentos}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={[styles.item, { borderBottomColor: Colors[colorScheme ?? 'dark'].icon }]}>
-            <Text style={{ color: Colors[colorScheme ?? 'dark'].text }}>
-              {item.descricao} - R${item.valor.toFixed(2)} ({item.tipo})
-            </Text>
-            <Text style={{ color: Colors[colorScheme ?? 'dark'].text, fontSize: 12 }}>
-              Conta: {contas.find((c) => c.id === item.conta_id)?.nome || 'Desconhecida'} | 
-              Categoria: {categorias.find((c) => c.id === item.categoria_id)?.nome || 'Desconhecida'} | 
-              Data: {item.data}
-            </Text>
-          </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ThemedView style={styles.container}>
+        <ThemedText type="title">Movimentações</ThemedText>
+        <TextInput
+          style={styles.input}
+          placeholder="Filtrar por descrição..."
+          placeholderTextColor="#A0A0A0"
+          value={filtroTexto}
+          onChangeText={setFiltroTexto}
+        />
+        <Picker
+          selectedValue={filtroContaId}
+          onValueChange={(itemValue) => setFiltroContaId(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Todas as contas" value={null} />
+          {contas.map((conta) => (
+            <Picker.Item key={conta.id} label={conta.nome} value={conta.id} />
+          ))}
+        </Picker>
+        {filtroContaId && saldoConta !== null && (
+          <ThemedText style={styles.saldo}>
+            Saldo da conta: R${saldoConta.toFixed(2)}
+          </ThemedText>
         )}
-        ListEmptyComponent={
-          <Text style={{ color: Colors[colorScheme ?? 'dark'].text, textAlign: 'center', marginTop: 16 }}>
-            Nenhuma movimentação encontrada
-          </Text>
-        }
-      />
-    </View>
+        <Picker
+          selectedValue={filtroCategoriaId}
+          onValueChange={(itemValue) => setFiltroCategoriaId(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Todas as categorias" value={null} />
+          {categorias.map((cat) => (
+            <Picker.Item key={cat.id} label={cat.nome} value={cat.id} />
+          ))}
+        </Picker>
+        <FlatList
+          data={filteredLancamentos}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.item}>
+              <ThemedText>
+                {item.descricao} - R${item.valor.toFixed(2)} ({item.tipo})
+              </ThemedText>
+              <ThemedText style={styles.itemDetails}>
+                Conta: {contas.find((c) => c.id === item.conta_id)?.nome || 'Desconhecida'} | 
+                Categoria: {categorias.find((c) => c.id === item.categoria_id)?.nome || 'Desconhecida'} | 
+                Data: {item.data}
+              </ThemedText>
+            </View>
+          )}
+          ListEmptyComponent={
+            <ThemedText style={styles.emptyText}>
+              Nenhuma movimentação encontrada
+            </ThemedText>
+          }
+          contentContainerStyle={styles.listContent}
+        />
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     padding: 16,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 16,
-  },
   input: {
+    width: '100%',
     padding: 12,
     borderRadius: 8,
-    fontSize: 16,
+    backgroundColor: '#1E1E1E',
+    color: '#E0E0E0',
     marginBottom: 16,
   },
   picker: {
+    width: '100%',
     marginBottom: 16,
+    backgroundColor: '#1E1E1E',
+    color: '#E0E0E0',
     borderRadius: 8,
   },
   item: {
+    width: '100%',
     padding: 8,
     borderBottomWidth: 1,
+    borderBottomColor: '#B0B0B0',
+  },
+  itemDetails: {
+    fontSize: 12,
   },
   saldo: {
     fontSize: 16,
     marginBottom: 16,
+  },
+  emptyText: {
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  listContent: {
+    width: '100%',
+    paddingBottom: 16,
   },
 });

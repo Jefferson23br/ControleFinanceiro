@@ -20,11 +20,3 @@ export interface Lancamento {
   descricao: string;
   tipo: string;
 }
-
-export interface Meta {
-  id: number;
-  nome: string;
-  valor_alvo: number;
-  valor_atual: number;
-  data_final: string;
-}

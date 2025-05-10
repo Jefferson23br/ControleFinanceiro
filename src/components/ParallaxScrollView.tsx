@@ -1,38 +1,13 @@
-import React, { ReactNode } from 'react';
-import { View, ScrollView, StyleSheet, Dimensions, Platform } from 'react-native';
-import { useColorScheme } from '../hooks/useColorScheme';
-import TabBarBackground from './ui/TabBarBackground';
-import Colors from '../../constants/Colors';
+import React from 'react';
+import { ScrollView, ScrollViewProps } from 'react-native';
+import ThemedView from '@/components/ThemedView';
 
-interface ParallaxScrollViewProps {
-  children: ReactNode;
-  headerImage?: ReactNode;
-}
-
-export default function ParallaxScrollView({ children, headerImage }: ParallaxScrollViewProps) {
-  const colorScheme = useColorScheme();
-  const backgroundColor = Colors[colorScheme ?? 'dark'].background; // #1C2526
-
+export default function ParallaxScrollView({ children, style, ...props }: ScrollViewProps) {
   return (
-    <View style={[styles.container, { backgroundColor }]}>
-      {headerImage && <View style={styles.header}>{headerImage}</View>}
-      <ScrollView style={styles.scrollView}>
-        {Platform.OS === 'ios' && <TabBarBackground />}
+    <ThemedView style={{ flex: 1 }}>
+      <ScrollView style={style} {...props}>
         {children}
       </ScrollView>
-    </View>
+    </ThemedView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    height: 200,
-    width: Dimensions.get('window').width,
-  },
-  scrollView: {
-    flex: 1,
-  },
-});
