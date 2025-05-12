@@ -3,7 +3,7 @@ const Colors = {
     text: '#000000',
     background: '#FFFFFF',
     tabBackground: '#F5F5F5',
-    cardBackground: '#E0E0E0',
+    cardBackground: '#F0F0F0', // Mais claro
     tint: '#007AFF',
     icon: '#000000',
     tabIconDefault: '#8A8A8A',
@@ -17,7 +17,7 @@ const Colors = {
     text: '#FFFFFF',
     background: '#1C2526',
     tabBackground: '#2A3437',
-    cardBackground: '#3A3A3A',
+    cardBackground: '#4A4A4A', // Um pouco mais claro
     tint: '#00AEEF',
     icon: '#FFFFFF',
     tabIconDefault: '#8A8A8A',

@@ -1,5 +1,17 @@
 import * as SQLite from 'expo-sqlite';
 
+const db = SQLite.openDatabaseSync('controlefinanceiro.db');
+
+export interface Lancamento {
+  id: number;
+  conta_id: number;
+  categoria_id: number;
+  valor: number;
+  data: string;
+  descricao: string;
+  tipo: string;
+}
+
 export interface Conta {
   id: number;
   nome: string;
@@ -13,178 +25,148 @@ export interface Categoria {
   tipo: string;
 }
 
-export interface Lancamento {
-  id: number;
-  conta_id: number;
-  categoria_id: number;
-  valor: number;
-  data: string;
-  descricao: string;
-  tipo: string;
-}
-
 export const initDatabase = async () => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS contas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL,
-      saldo_inicial REAL NOT NULL,
-      tipo TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS categorias (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL,
-      tipo TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS lancamentos (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      conta_id INTEGER,
-      categoria_id INTEGER,
-      valor REAL NOT NULL,
-      data TEXT NOT NULL,
-      descricao TEXT,
-      tipo TEXT NOT NULL,
-      FOREIGN KEY (conta_id) REFERENCES contas(id),
-      FOREIGN KEY (categoria_id) REFERENCES categorias(id)
-    );
-    CREATE TABLE IF NOT EXISTS metas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nome TEXT NOT NULL,
-      valor_alvo REAL NOT NULL,
-      valor_atual REAL NOT NULL,
-      data_final TEXT NOT NULL
-    );
-  `);
-};
+  try {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS contas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        saldo_inicial REAL NOT NULL,
+        tipo TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS categorias (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome TEXT NOT NULL,
+        tipo TEXT NOT NULL CHECK(tipo IN ('receita', 'despesa'))
+      );
+      CREATE TABLE IF NOT EXISTS lancamentos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        conta_id INTEGER,
+        categoria_id INTEGER,
+        valor REAL NOT NULL,
+        data TEXT NOT NULL,
+        descricao TEXT,
+        tipo TEXT NOT NULL CHECK(tipo IN ('receita', 'despesa')),
+        FOREIGN KEY (conta_id) REFERENCES contas(id),
+        FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+      );
+    `);
 
-export const insertConta = async (
-  nome: string,
-  saldo_inicial: number,
-  tipo: string
-): Promise<number> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const result = await db.runAsync(
-    'INSERT INTO contas (nome, saldo_inicial, tipo) VALUES (?, ?, ?);',
-    [nome, saldo_inicial, tipo]
-  );
-  return result.lastInsertRowId;
+    const contasResult = await db.getAllAsync('SELECT * FROM contas LIMIT 1');
+    if (contasResult.length === 0) {
+      await db.runAsync('INSERT INTO contas (nome, saldo_inicial, tipo) VALUES (?, ?, ?)', ['Conta Padrão', 0, 'corrente']);
+    }
+
+    const categoriasResult = await db.getAllAsync('SELECT * FROM categorias LIMIT 1');
+    if (categoriasResult.length === 0) {
+      await db.runAsync('INSERT INTO categorias (nome, tipo) VALUES (?, ?)', ['Salário', 'receita']);
+      await db.runAsync('INSERT INTO categorias (nome, tipo) VALUES (?, ?)', ['Alimentação', 'despesa']);
+    }
+  } catch (error) {
+    console.error('Erro ao inicializar banco de dados:', error);
+  }
 };
 
 export const getContas = async (): Promise<Conta[]> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const contas = await db.getAllAsync<Conta>('SELECT * FROM contas;');
-  return contas;
+  try {
+    const result = await db.getAllAsync('SELECT * FROM contas');
+    return result as Conta[];
+  } catch (error) {
+    console.error('Erro ao buscar contas:', error);
+    return [];
+  }
 };
 
-export const getCategorias = async (): Promise<Categoria[]> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const categorias = await db.getAllAsync<Categoria>('SELECT * FROM categorias;');
-  return categorias;
+export const getCategorias = async (tipo?: string): Promise<Categoria[]> => {
+  try {
+    const query = tipo ? 'SELECT * FROM categorias WHERE tipo = ?' : 'SELECT * FROM categorias';
+    const params = tipo ? [tipo] : [];
+    const result = await db.getAllAsync(query, params);
+    return result as Categoria[];
+  } catch (error) {
+    console.error('Erro ao buscar categorias:', error);
+    return [];
+  }
+};
+
+export const getLancamentos = async (): Promise<Lancamento[]> => {
+  try {
+    const result = await db.getAllAsync('SELECT * FROM lancamentos');
+    return result as Lancamento[];
+  } catch (error) {
+    console.error('Erro ao buscar lançamentos:', error);
+    return [];
+  }
+};
+
+export const getSaldoConta = async (contaId: number): Promise<number> => {
+  try {
+    const result = await db.getFirstAsync('SELECT saldo_inicial FROM contas WHERE id = ?', [contaId]);
+    return (result as Conta)?.saldo_inicial || 0;
+  } catch (error) {
+    console.error('Erro ao buscar saldo da conta:', error);
+    return 0;
+  }
 };
 
 export const saveLancamento = async (
-  conta_id: number,
-  categoria_id: number,
+  contaId: number,
+  categoriaId: number,
   valor: number,
   data: string,
   descricao: string,
   tipo: string
-): Promise<number> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const result = await db.runAsync(
-    'INSERT INTO lancamentos (conta_id, categoria_id, valor, data, descricao, tipo) VALUES (?, ?, ?, ?, ?, ?);',
-    [conta_id, categoria_id, valor, data, descricao, tipo]
-  );
-  return result.lastInsertRowId;
-};
-
-export const updateContaSaldo = async (
-  conta_id: number,
-  valor: number,
-  tipo: string
 ): Promise<void> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const operador = tipo === 'receita' ? '+' : '-';
-  await db.runAsync(
-    `UPDATE contas SET saldo_inicial = saldo_inicial ${operador} ? WHERE id = ?;`,
-    [valor, conta_id]
-  );
-};
-
-export const getLancamentos = async (): Promise<Lancamento[]> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const lancamentos = await db.getAllAsync<Lancamento>('SELECT * FROM lancamentos;');
-  return lancamentos;
-};
-
-export const getSaldoConta = async (conta_id: number): Promise<number> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const conta = await db.getFirstAsync<Conta>('SELECT saldo_inicial FROM contas WHERE id = ?;', [conta_id]);
-  if (!conta) throw new Error(`Conta com id ${conta_id} não encontrada`);
-  const lancamentos = await db.getAllAsync<Lancamento>('SELECT valor, tipo FROM lancamentos WHERE conta_id = ?;', [conta_id]);
-  const saldo = lancamentos.reduce((acc, lanc) => {
-    return lanc.tipo === 'receita' ? acc + lanc.valor : acc - lanc.valor;
-  }, conta.saldo_inicial);
-  return saldo;
-};
-
-export const insertCategoria = async (nome: string, tipo: string): Promise<number> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  const result = await db.runAsync(
-    'INSERT INTO categorias (nome, tipo) VALUES (?, ?);',
-    [nome, tipo]
-  );
-  return result.lastInsertRowId;
+  try {
+    await db.runAsync(
+      'INSERT INTO lancamentos (conta_id, categoria_id, valor, data, descricao, tipo) VALUES (?, ?, ?, ?, ?, ?)',
+      [contaId, categoriaId, valor, data, descricao, tipo]
+    );
+    await updateContaSaldo(contaId, valor, tipo);
+  } catch (error) {
+    console.error('Erro ao salvar lançamento:', error);
+  }
 };
 
 export const updateLancamento = async (
   id: number,
-  conta_id: number,
-  categoria_id: number,
+  contaId: number,
+  categoriaId: number,
   valor: number,
   data: string,
   descricao: string,
   tipo: string
 ): Promise<void> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  await db.runAsync(
-    'UPDATE lancamentos SET conta_id = ?, categoria_id = ?, valor = ?, data = ?, descricao = ?, tipo = ? WHERE id = ?;',
-    [conta_id, categoria_id, valor, data, descricao, tipo, id]
-  );
+  try {
+    await db.runAsync(
+      'UPDATE lancamentos SET conta_id = ?, categoria_id = ?, valor = ?, data = ?, descricao = ?, tipo = ? WHERE id = ?',
+      [contaId, categoriaId, valor, data, descricao, tipo, id]
+    );
+  } catch (error) {
+    console.error('Erro ao atualizar lançamento:', error);
+  }
 };
 
 export const deleteLancamento = async (id: number): Promise<void> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  await db.runAsync('DELETE FROM lancamentos WHERE id = ?;', [id]);
+  try {
+    const lancamento = await db.getFirstAsync('SELECT conta_id, valor, tipo FROM lancamentos WHERE id = ?', [id]) as Lancamento;
+    if (lancamento) {
+      await db.runAsync('DELETE FROM lancamentos WHERE id = ?', [id]);
+      await updateContaSaldo(lancamento.conta_id, lancamento.valor, lancamento.tipo === 'receita' ? '-' : '+');
+    }
+  } catch (error) {
+    console.error('Erro ao deletar lançamento:', error);
+  }
 };
 
-export const updateConta = async (
-  id: number,
-  nome: string,
-  saldo_inicial: number,
-  tipo: string
-): Promise<void> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  await db.runAsync(
-    'UPDATE contas SET nome = ?, saldo_inicial = ?, tipo = ? WHERE id = ?;',
-    [nome, saldo_inicial, tipo, id]
-  );
-};
-
-export const deleteConta = async (id: number): Promise<void> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  await db.runAsync('DELETE FROM lancamentos WHERE conta_id = ?;', [id]);
-  await db.runAsync('DELETE FROM contas WHERE id = ?;', [id]);
-};
-
-export const updateCategoria = async (id: number, nome: string, tipo: string): Promise<void> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  await db.runAsync('UPDATE categorias SET nome = ?, tipo = ? WHERE id = ?;', [nome, tipo, id]);
-};
-
-export const deleteCategoria = async (id: number): Promise<void> => {
-  const db = await SQLite.openDatabaseAsync('controleFinanceiro.db');
-  await db.runAsync('DELETE FROM lancamentos WHERE categoria_id = ?;', [id]);
-  await db.runAsync('DELETE FROM categorias WHERE id = ?;', [id]);
+export const updateContaSaldo = async (contaId: number, valor: number, tipo: string): Promise<void> => {
+  try {
+    const operacao = tipo === 'receita' ? '+' : '-';
+    await db.runAsync(
+      `UPDATE contas SET saldo_inicial = saldo_inicial ${operacao} ? WHERE id = ?`,
+      [valor, contaId]
+    );
+  } catch (error) {
+    console.error('Erro ao atualizar saldo da conta:', error);
+  }
 };
