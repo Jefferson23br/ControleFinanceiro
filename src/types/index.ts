@@ -1,3 +1,13 @@
+export interface Lancamento {
+  id: number;
+  conta_id: number;
+  categoria_id: number;
+  valor: number;
+  data: string;
+  descricao: string;
+  tipo: string;
+}
+
 export interface Conta {
   id: number;
   nome: string;
@@ -11,12 +21,10 @@ export interface Categoria {
   tipo: string;
 }
 
-export interface Lancamento {
+export interface Meta {
   id: number;
-  conta_id: number;
-  categoria_id: number;
-  valor: number;
-  data: string;
-  descricao: string;
-  tipo: string;
+  nome: string;
+  valor_alvo: number;
+  valor_atual: number;
+  data_final: string;
 }

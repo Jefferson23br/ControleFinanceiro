@@ -56,7 +56,7 @@ export default function LancamentoForm({ tipo }: LancamentoFormProps) {
       <Picker
         selectedValue={contaId}
         onValueChange={(itemValue) => setContaId(itemValue)}
-        style={[styles.picker, { backgroundColor: '#1E1E1E', color: Colors[colorScheme ?? 'dark'].text }]}
+        style={[styles.picker, { backgroundColor: Colors[colorScheme ?? 'dark'].cardBackground, color: Colors[colorScheme ?? 'dark'].text }]}
       >
         <Picker.Item label="Selecione uma conta" value={null} />
         {contas.map((conta) => (
@@ -66,7 +66,7 @@ export default function LancamentoForm({ tipo }: LancamentoFormProps) {
       <Picker
         selectedValue={categoriaId}
         onValueChange={(itemValue) => setCategoriaId(itemValue)}
-        style={[styles.picker, { backgroundColor: '#1E1E1E', color: Colors[colorScheme ?? 'dark'].text }]}
+        style={[styles.picker, { backgroundColor: Colors[colorScheme ?? 'dark'].cardBackground, color: Colors[colorScheme ?? 'dark'].text }]}
       >
         <Picker.Item label="Selecione uma categoria" value={null} />
         {categorias.map((cat: Categoria) => (
@@ -74,7 +74,7 @@ export default function LancamentoForm({ tipo }: LancamentoFormProps) {
         ))}
       </Picker>
       <TextInput
-        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: '#1E1E1E' }]}
+        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: Colors[colorScheme ?? 'dark'].cardBackground }]}
         placeholder="Valor"
         placeholderTextColor="#A0A0A0"
         value={valor}
@@ -82,14 +82,14 @@ export default function LancamentoForm({ tipo }: LancamentoFormProps) {
         keyboardType="numeric"
       />
       <TextInput
-        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: '#1E1E1E' }]}
+        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: Colors[colorScheme ?? 'dark'].cardBackground }]}
         placeholder="Data (YYYY-MM-DD)"
         placeholderTextColor="#A0A0A0"
         value={data}
         onChangeText={setData}
       />
       <TextInput
-        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: '#1E1E1E' }]}
+        style={[styles.input, { color: Colors[colorScheme ?? 'dark'].text, backgroundColor: Colors[colorScheme ?? 'dark'].cardBackground }]}
         placeholder="Descrição"
         placeholderTextColor="#A0A0A0"
         value={descricao}
