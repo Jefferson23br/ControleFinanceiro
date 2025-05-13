@@ -1,172 +1,180 @@
 import * as SQLite from 'expo-sqlite';
+import { Conta, Movimentacao, Meta, Lancamento, Categoria } from '@/types';
 
-const db = SQLite.openDatabaseSync('controlefinanceiro.db');
+const db = SQLite.openDatabaseSync('financeiro.db');
 
-export interface Lancamento {
-  id: number;
-  conta_id: number;
-  categoria_id: number;
-  valor: number;
-  data: string;
-  descricao: string;
-  tipo: string;
-}
-
-export interface Conta {
-  id: number;
-  nome: string;
-  saldo_inicial: number;
-  tipo: string;
-}
-
-export interface Categoria {
-  id: number;
-  nome: string;
-  tipo: string;
-}
-
-export const initDatabase = async () => {
-  try {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS contas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        saldo_inicial REAL NOT NULL,
-        tipo TEXT NOT NULL
-      );
-      CREATE TABLE IF NOT EXISTS categorias (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nome TEXT NOT NULL,
-        tipo TEXT NOT NULL CHECK(tipo IN ('receita', 'despesa'))
-      );
-      CREATE TABLE IF NOT EXISTS lancamentos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        conta_id INTEGER,
-        categoria_id INTEGER,
-        valor REAL NOT NULL,
-        data TEXT NOT NULL,
-        descricao TEXT,
-        tipo TEXT NOT NULL CHECK(tipo IN ('receita', 'despesa')),
-        FOREIGN KEY (conta_id) REFERENCES contas(id),
-        FOREIGN KEY (categoria_id) REFERENCES categorias(id)
-      );
-    `);
-
-    const contasResult = await db.getAllAsync('SELECT * FROM contas LIMIT 1');
-    if (contasResult.length === 0) {
-      await db.runAsync('INSERT INTO contas (nome, saldo_inicial, tipo) VALUES (?, ?, ?)', ['Conta Padrão', 0, 'corrente']);
-    }
-
-    const categoriasResult = await db.getAllAsync('SELECT * FROM categorias LIMIT 1');
-    if (categoriasResult.length === 0) {
-      await db.runAsync('INSERT INTO categorias (nome, tipo) VALUES (?, ?)', ['Salário', 'receita']);
-      await db.runAsync('INSERT INTO categorias (nome, tipo) VALUES (?, ?)', ['Alimentação', 'despesa']);
-    }
-  } catch (error) {
-    console.error('Erro ao inicializar banco de dados:', error);
-  }
-};
-
-export const getContas = async (): Promise<Conta[]> => {
-  try {
-    const result = await db.getAllAsync('SELECT * FROM contas');
-    return result as Conta[];
-  } catch (error) {
-    console.error('Erro ao buscar contas:', error);
-    return [];
-  }
-};
-
-export const getCategorias = async (tipo?: string): Promise<Categoria[]> => {
-  try {
-    const query = tipo ? 'SELECT * FROM categorias WHERE tipo = ?' : 'SELECT * FROM categorias';
-    const params = tipo ? [tipo] : [];
-    const result = await db.getAllAsync(query, params);
-    return result as Categoria[];
-  } catch (error) {
-    console.error('Erro ao buscar categorias:', error);
-    return [];
-  }
-};
-
-export const getLancamentos = async (): Promise<Lancamento[]> => {
-  try {
-    const result = await db.getAllAsync('SELECT * FROM lancamentos');
-    return result as Lancamento[];
-  } catch (error) {
-    console.error('Erro ao buscar lançamentos:', error);
-    return [];
-  }
-};
-
-export const getSaldoConta = async (contaId: number): Promise<number> => {
-  try {
-    const result = await db.getFirstAsync('SELECT saldo_inicial FROM contas WHERE id = ?', [contaId]);
-    return (result as Conta)?.saldo_inicial || 0;
-  } catch (error) {
-    console.error('Erro ao buscar saldo da conta:', error);
-    return 0;
-  }
-};
-
-export const saveLancamento = async (
-  contaId: number,
-  categoriaId: number,
-  valor: number,
-  data: string,
-  descricao: string,
-  tipo: string
-): Promise<void> => {
-  try {
-    await db.runAsync(
-      'INSERT INTO lancamentos (conta_id, categoria_id, valor, data, descricao, tipo) VALUES (?, ?, ?, ?, ?, ?)',
-      [contaId, categoriaId, valor, data, descricao, tipo]
+// Inicializar o banco de dados
+export const initDatabase = () => {
+  db.execSync(`
+    PRAGMA journal_mode = WAL;
+    CREATE TABLE IF NOT EXISTS despesas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      descricao TEXT,
+      valor REAL,
+      data TEXT,
+      categoria TEXT,
+      conta_id INTEGER
     );
-    await updateContaSaldo(contaId, valor, tipo);
-  } catch (error) {
-    console.error('Erro ao salvar lançamento:', error);
-  }
-};
-
-export const updateLancamento = async (
-  id: number,
-  contaId: number,
-  categoriaId: number,
-  valor: number,
-  data: string,
-  descricao: string,
-  tipo: string
-): Promise<void> => {
-  try {
-    await db.runAsync(
-      'UPDATE lancamentos SET conta_id = ?, categoria_id = ?, valor = ?, data = ?, descricao = ?, tipo = ? WHERE id = ?',
-      [contaId, categoriaId, valor, data, descricao, tipo, id]
+    CREATE TABLE IF NOT EXISTS receitas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      descricao TEXT,
+      valor REAL,
+      data TEXT,
+      categoria TEXT,
+      conta_id INTEGER
     );
-  } catch (error) {
-    console.error('Erro ao atualizar lançamento:', error);
-  }
-};
-
-export const deleteLancamento = async (id: number): Promise<void> => {
-  try {
-    const lancamento = await db.getFirstAsync('SELECT conta_id, valor, tipo FROM lancamentos WHERE id = ?', [id]) as Lancamento;
-    if (lancamento) {
-      await db.runAsync('DELETE FROM lancamentos WHERE id = ?', [id]);
-      await updateContaSaldo(lancamento.conta_id, lancamento.valor, lancamento.tipo === 'receita' ? '-' : '+');
-    }
-  } catch (error) {
-    console.error('Erro ao deletar lançamento:', error);
-  }
-};
-
-export const updateContaSaldo = async (contaId: number, valor: number, tipo: string): Promise<void> => {
-  try {
-    const operacao = tipo === 'receita' ? '+' : '-';
-    await db.runAsync(
-      `UPDATE contas SET saldo_inicial = saldo_inicial ${operacao} ? WHERE id = ?`,
-      [valor, contaId]
+    CREATE TABLE IF NOT EXISTS movimentacoes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      descricao TEXT,
+      valor REAL,
+      data TEXT,
+      tipo TEXT,
+      conta_id INTEGER
     );
-  } catch (error) {
-    console.error('Erro ao atualizar saldo da conta:', error);
+    CREATE TABLE IF NOT EXISTS metas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT,
+      valor REAL
+    );
+    CREATE TABLE IF NOT EXISTS contas (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT,
+      saldo_inicial REAL,
+      tipo TEXT
+    );
+    CREATE TABLE IF NOT EXISTS categorias (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      nome TEXT
+    );
+  `);
+};
+
+// Funções para Despesa
+export const saveDespesa = (descricao: string, valor: number, data: string, categoria: string, contaId?: number) => {
+  db.runSync(
+    'INSERT INTO despesas (descricao, valor, data, categoria, conta_id) VALUES (?, ?, ?, ?, ?)',
+    [descricao, valor, data, categoria, contaId || null]
+  );
+};
+
+// Funções para Receita
+export const saveReceita = (descricao: string, valor: number, data: string, categoria: string, contaId?: number) => {
+  db.runSync(
+    'INSERT INTO receitas (descricao, valor, data, categoria, conta_id) VALUES (?, ?, ?, ?, ?)',
+    [descricao, valor, data, categoria, contaId || null]
+  );
+};
+
+// Funções para Movimentações
+export const getMovimentacoes = (): Movimentacao[] => {
+  const despesas = db.getAllSync('SELECT *, "despesa" as tipo FROM despesas') as Movimentacao[];
+  const receitas = db.getAllSync('SELECT *, "receita" as tipo FROM receitas') as Movimentacao[];
+  return [...despesas, ...receitas].sort((a: Movimentacao, b: Movimentacao) => 
+    new Date(b.data).getTime() - new Date(a.data).getTime()
+  );
+};
+
+// Funções para Metas
+export const getMetas = (): Meta[] => {
+  return db.getAllSync('SELECT * FROM metas') as Meta[];
+};
+
+export const saveMeta = (nome: string, valor: number) => {
+  db.runSync('INSERT INTO metas (nome, valor) VALUES (?, ?)', [nome, valor]);
+};
+
+export const updateMeta = (id: number, nome: string, valor: number) => {
+  db.runSync('UPDATE metas SET nome = ?, valor = ? WHERE id = ?', [nome, valor, id]);
+};
+
+export const deleteMeta = (id: number) => {
+  db.runSync('DELETE FROM metas WHERE id = ?', [id]);
+};
+
+// Funções para Contas
+export const getContas = (): Conta[] => {
+  return db.getAllSync('SELECT * FROM contas') as Conta[];
+};
+
+export const saveConta = (nome: string, saldoInicial: number, tipo: string) => {
+  db.runSync('INSERT INTO contas (nome, saldo_inicial, tipo) VALUES (?, ?, ?)', [nome, saldoInicial, tipo]);
+};
+
+export const updateConta = (id: number, nome: string, saldoInicial: number, tipo: string) => {
+  db.runSync('UPDATE contas SET nome = ?, saldo_inicial = ?, tipo = ? WHERE id = ?', [nome, saldoInicial, tipo, id]);
+};
+
+export const deleteConta = (id: number) => {
+  db.runSync('DELETE FROM contas WHERE id = ?', [id]);
+};
+
+// Funções para Categorias
+export const getCategorias = (): Categoria[] => {
+  return db.getAllSync('SELECT * FROM categorias') as Categoria[];
+};
+
+export const saveCategoria = (nome: string) => {
+  db.runSync('INSERT INTO categorias (nome) VALUES (?)', [nome]);
+};
+
+export const updateCategoria = (id: number, nome: string) => {
+  db.runSync('UPDATE categorias SET nome = ? WHERE id = ?', [nome, id]);
+};
+
+export const deleteCategoria = (id: number) => {
+  db.runSync('DELETE FROM categorias WHERE id = ?', [id]);
+};
+
+// Funções para Lançamentos
+export const getLancamentos = (): Lancamento[] => {
+  const despesas = db.getAllSync('SELECT *, "despesa" as tipo FROM despesas') as Lancamento[];
+  const receitas = db.getAllSync('SELECT *, "receita" as tipo FROM receitas') as Lancamento[];
+  return [...despesas, ...receitas].sort((a: Lancamento, b: Lancamento) => 
+    new Date(b.data).getTime() - new Date(a.data).getTime()
+  );
+};
+
+export const saveLancamento = (lancamento: Lancamento) => {
+  if (lancamento.tipo === 'despesa') {
+    saveDespesa(
+      lancamento.descricao,
+      lancamento.valor,
+      lancamento.data,
+      lancamento.categoria,
+      lancamento.contaId
+    );
+  } else {
+    saveReceita(
+      lancamento.descricao,
+      lancamento.valor,
+      lancamento.data,
+      lancamento.categoria,
+      lancamento.contaId
+    );
   }
+};
+
+export const updateLancamento = (lancamento: Lancamento) => {
+  if (lancamento.tipo === 'despesa') {
+    db.runSync(
+      'UPDATE despesas SET descricao = ?, valor = ?, data = ?, categoria = ?, conta_id = ? WHERE id = ?',
+      [lancamento.descricao, lancamento.valor, lancamento.data, lancamento.categoria, lancamento.contaId || null, lancamento.id]
+    );
+  } else {
+    db.runSync(
+      'UPDATE receitas SET descricao = ?, valor = ?, data = ?, categoria = ?, conta_id = ? WHERE id = ?',
+      [lancamento.descricao, lancamento.valor, lancamento.data, lancamento.categoria, lancamento.contaId || null, lancamento.id]
+    );
+  }
+};
+
+// Função para calcular saldo da conta
+export const getSaldoConta = (contaId: number): number => {
+  const receitas = db.getAllSync('SELECT valor FROM receitas WHERE conta_id = ?', [contaId]) as { valor: number }[];
+  const despesas = db.getAllSync('SELECT valor FROM despesas WHERE conta_id = ?', [contaId]) as { valor: number }[];
+  const conta = db.getFirstSync('SELECT saldo_inicial FROM contas WHERE id = ?', [contaId]) as { saldo_inicial: number };
+
+  const totalReceitas = receitas.reduce((sum: number, r: { valor: number }) => sum + r.valor, 0);
+  const totalDespesas = despesas.reduce((sum: number, d: { valor: number }) => sum + d.valor, 0);
+  return (conta?.saldo_inicial || 0) + totalReceitas - totalDespesas;
 };

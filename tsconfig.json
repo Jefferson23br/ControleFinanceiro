@@ -4,21 +4,12 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/components/*": [
-        "src/components/*"
-      ],
-      "@/hooks/*": [
-        "src/hooks/*"
-      ],
-      "@/services/*": [
-        "src/services/*"
-      ],
-      "@/types/*": [
-        "src/types/*"
-      ],
-      "@/constants/*": [
-        "constants/*"
-      ]
+      "@/*": ["src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/services/*": ["src/services/*"],
+      "@/types/*": ["src/types/*"],
+      "@/constants/*": ["constants/*"]
     },
     "typeRoots": [
       "./src/types",
